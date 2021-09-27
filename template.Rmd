@@ -29,7 +29,7 @@ view(litters_df)
 
 #names(litters_df)
 
-#litters_df <- janitor::clean_names(litters_df)
+litters_df <- janitor::clean_names(litters_df)
 ```
 
 Here's `skimr`
