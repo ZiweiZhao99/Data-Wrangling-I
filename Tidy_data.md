@@ -210,3 +210,86 @@ lotr_tidy
     ## 16 return_king     hobbit male    2673
     ## 17 return_king     man    female   268
     ## 18 return_king     man    male    2459
+
+## join
+
+Look at FAS data.
+
+``` r
+pup_data = 
+  read_csv("./data/FAS_pups.csv") %>%
+  janitor::clean_names() %>%
+  mutate(
+    sex = recode(sex, `1` = "male", `2` = "female"),
+    sex = factor(sex)) 
+pup_data
+```
+
+    ## # A tibble: 313 × 6
+    ##    litter_number sex   pd_ears pd_eyes pd_pivot pd_walk
+    ##    <chr>         <fct>   <dbl>   <dbl>    <dbl>   <dbl>
+    ##  1 #85           male        4      13        7      11
+    ##  2 #85           male        4      13        7      12
+    ##  3 #1/2/95/2     male        5      13        7       9
+    ##  4 #1/2/95/2     male        5      13        8      10
+    ##  5 #5/5/3/83/3-3 male        5      13        8      10
+    ##  6 #5/5/3/83/3-3 male        5      14        6       9
+    ##  7 #5/4/2/95/2   male       NA      14        5       9
+    ##  8 #4/2/95/3-3   male        4      13        6       8
+    ##  9 #4/2/95/3-3   male        4      13        7       9
+    ## 10 #2/2/95/3-2   male        4      NA        8      10
+    ## # … with 303 more rows
+
+``` r
+litter_data = 
+  read_csv("./data/FAS_litters.csv") %>%
+  janitor::clean_names() %>%
+  separate(group, into = c("dose", "day_of_tx"), sep = 3) %>%
+  relocate(litter_number) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    dose = str_to_lower(dose))
+litter_data
+```
+
+    ## # A tibble: 49 × 10
+    ##    litter_number   dose  day_of_tx gd0_weight gd18_weight gd_of_birth
+    ##    <chr>           <chr> <chr>          <dbl>       <dbl>       <dbl>
+    ##  1 #85             con   7               19.7        34.7          20
+    ##  2 #1/2/95/2       con   7               27          42            19
+    ##  3 #5/5/3/83/3-3   con   7               26          41.4          19
+    ##  4 #5/4/2/95/2     con   7               28.5        44.1          19
+    ##  5 #4/2/95/3-3     con   7               NA          NA            20
+    ##  6 #2/2/95/3-2     con   7               NA          NA            20
+    ##  7 #1/5/3/83/3-3/2 con   7               NA          NA            20
+    ##  8 #3/83/3-3       con   8               NA          NA            20
+    ##  9 #2/95/3         con   8               NA          NA            20
+    ## 10 #3/5/2/2/95     con   8               28.5        NA            20
+    ## # … with 39 more rows, and 4 more variables: pups_born_alive <dbl>,
+    ## #   pups_dead_birth <dbl>, pups_survive <dbl>, wt_gain <dbl>
+
+Let’s join these up!
+
+``` r
+fas_data = 
+  left_join(pup_data, litter_data, by = "litter_number")
+
+fas_data
+```
+
+    ## # A tibble: 313 × 15
+    ##    litter_number sex   pd_ears pd_eyes pd_pivot pd_walk dose  day_of_tx
+    ##    <chr>         <fct>   <dbl>   <dbl>    <dbl>   <dbl> <chr> <chr>    
+    ##  1 #85           male        4      13        7      11 con   7        
+    ##  2 #85           male        4      13        7      12 con   7        
+    ##  3 #1/2/95/2     male        5      13        7       9 con   7        
+    ##  4 #1/2/95/2     male        5      13        8      10 con   7        
+    ##  5 #5/5/3/83/3-3 male        5      13        8      10 con   7        
+    ##  6 #5/5/3/83/3-3 male        5      14        6       9 con   7        
+    ##  7 #5/4/2/95/2   male       NA      14        5       9 con   7        
+    ##  8 #4/2/95/3-3   male        4      13        6       8 con   7        
+    ##  9 #4/2/95/3-3   male        4      13        7       9 con   7        
+    ## 10 #2/2/95/3-2   male        4      NA        8      10 con   7        
+    ## # … with 303 more rows, and 7 more variables: gd0_weight <dbl>,
+    ## #   gd18_weight <dbl>, gd_of_birth <dbl>, pups_born_alive <dbl>,
+    ## #   pups_dead_birth <dbl>, pups_survive <dbl>, wt_gain <dbl>
